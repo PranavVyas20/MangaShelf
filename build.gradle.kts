@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.google.devtools.ksp) apply false
     alias(libs.plugins.hiltAndroid) apply false
+    id("androidx.room") version "2.6.1" apply false
     kotlin("jvm").version(libs.versions.kotlin).apply(false)
     kotlin("plugin.serialization").version(libs.versions.kotlin).apply(false)
 }
