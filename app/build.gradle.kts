@@ -87,8 +87,8 @@ dependencies {
 
     debugImplementation ("com.github.chuckerteam.chucker:library:4.1.0")
     releaseImplementation ("com.github.chuckerteam.chucker:library-no-op:4.1.0")
-    implementation("com.squareup.retrofit2:retrofit:$2.11.0")
-    implementation("com.squareup.retrofit2:converter-gson:$2.11.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.8")
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.8")
 
