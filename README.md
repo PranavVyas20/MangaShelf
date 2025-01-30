@@ -13,4 +13,4 @@ Features:
 - [Filter mangas by score, year published, popularity]
 - [Bookmark a manga]
 
-![Screenshot](ss/manga_shelf_design_cover.png)
+![Screenshot](ss/manga_shelf_design_cover.jpg)
