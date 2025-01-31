@@ -91,7 +91,6 @@ fun MangaListScreen(
     onMangaItemClicked: (mangaId: String) -> Unit,
     removeToastMessage: () -> Unit
 ) {
-    var listStateKey by remember { mutableIntStateOf(0) }
     val lazyListState = rememberLazyListState()
 
     val context = LocalContext.current
@@ -148,10 +147,7 @@ fun MangaListScreen(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         totalBooks = uiState.totalMangas,
                         onFilterClick = {
-                            listStateKey++
-                            scope.launch {
-                                onSortByClicked(it)
-                            }
+                            onSortByClicked(it)
                         }
                     )
                     MangaList(
@@ -224,7 +220,7 @@ fun MangaList(
     onLoadMoreData: () -> Unit
 ) {
 
-    LaunchedEffect (listState.canScrollForward){
+    LaunchedEffect(listState.canScrollForward) {
         onLoadMoreData()
     }
 
@@ -233,7 +229,7 @@ fun MangaList(
         contentPadding = PaddingValues(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        items(allMangas, key = { it.id }) { manga ->
+        items(allMangas) { manga ->
             MangaListItem(modifier = Modifier.animateItem(), manga = manga) { id ->
                 onMangaClick(id)
             }
