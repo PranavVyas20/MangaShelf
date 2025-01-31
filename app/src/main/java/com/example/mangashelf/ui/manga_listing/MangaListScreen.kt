@@ -1,6 +1,5 @@
 package com.example.mangashelf.ui.manga_listing
 
-import android.graphics.Paint.Align
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -43,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,6 +78,7 @@ import com.example.mangashelf.ui.components.debounceClickable
 import com.example.mangashelf.ui.manga_listing_error.MangaListErrorScreen
 import com.example.mangashelf.ui.theme.Typography
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -90,7 +91,9 @@ fun MangaListScreen(
     onMangaItemClicked: (mangaId: String) -> Unit,
     removeToastMessage: () -> Unit
 ) {
+    var listStateKey by remember { mutableIntStateOf(0) }
     val lazyListState = rememberLazyListState()
+
     val context = LocalContext.current
     uiState.toastMessage?.let {
         Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -145,7 +148,10 @@ fun MangaListScreen(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         totalBooks = uiState.totalMangas,
                         onFilterClick = {
-                            onSortByClicked(it)
+                            listStateKey++
+                            scope.launch {
+                                onSortByClicked(it)
+                            }
                         }
                     )
                     MangaList(
@@ -217,24 +223,18 @@ fun MangaList(
     onMangaClick: (id: String) -> Unit,
     onLoadMoreData: () -> Unit
 ) {
-    val reachedBottom: Boolean by remember {
-        derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem?.index != 0 && lastVisibleItem?.index == listState.layoutInfo.totalItemsCount - 3
-        }
+
+    LaunchedEffect (listState.canScrollForward){
+        onLoadMoreData()
     }
 
-    LaunchedEffect(reachedBottom) {
-        if (reachedBottom) onLoadMoreData()
-    }
     LazyColumn(
         state = listState,
         contentPadding = PaddingValues(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        items(allMangas, key = {it.id}) { manga ->
-            MangaListItem(manga = manga) { id ->
-                Log.d("id_tagg", ": $id")
+        items(allMangas, key = { it.id }) { manga ->
+            MangaListItem(modifier = Modifier.animateItem(), manga = manga) { id ->
                 onMangaClick(id)
             }
         }
@@ -314,11 +314,11 @@ fun PublishedYearFilterItem(
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-private fun MangaListItem(manga: MangaDto, onClick: (mangaId: String) -> Unit) {
+private fun MangaListItem(modifier: Modifier, manga: MangaDto, onClick: (mangaId: String) -> Unit) {
     val isPreviewMode = LocalInspectionMode.current
     val context = LocalContext.current
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .debounceClickable {
                 onClick(manga.id)
