@@ -75,18 +75,29 @@ class MangaListViewModel @Inject constructor(
                 updatedPageSize = totalCount - offset
             }
 
+            val mangaList = when (currentSortingOrder) {
+                MangaSortingOrder.SCORE -> {
+                    mangaRepository.getLocalMangasPaginatedByScore(
+                        limit = updatedPageSize,
+                        offset = offset
+                    )
+                }
 
-            val mangaList = if (currentSortingOrder == MangaSortingOrder.PUBLISHED_YEAR) {
-                mangaRepository.getLocalMangasPaginated(
-                    limit = updatedPageSize,
-                    offset = offset
-                )
-            } else {
-                mangaRepository.getLocalMangasPaginatedByScore(
-                    limit = updatedPageSize,
-                    offset = offset
-                )
+                MangaSortingOrder.PUBLISHED_YEAR -> {
+                    mangaRepository.getLocalMangasPaginated(
+                        limit = updatedPageSize,
+                        offset = offset
+                    )
+                }
+
+                MangaSortingOrder.POPULARITY -> {
+                    mangaRepository.getLocalMangasPaginatedByPopularity(
+                        limit = updatedPageSize,
+                        offset = offset
+                    )
+                }
             }
+
             pageNo++
 
             fetchedMangaList.addAll(mangaList)
@@ -123,12 +134,18 @@ class MangaListViewModel @Inject constructor(
                     is NetworkResponse.Error -> {
                         if (mangaRepository.getLocalMangasCount() > 0) {
                             _uiState.update {
-                                it.copy(toastMessage = "Couldn't connect to the internet, showing offline results!", isLoading = false)
+                                it.copy(
+                                    toastMessage = "Couldn't connect to the internet, showing offline results!",
+                                    isLoading = false
+                                )
                             }
                             getMangaListFromDb()
                         } else {
                             _uiState.update {
-                                it.copy(errorMessage = "Couldn't connect to the internet!", isLoading = false)
+                                it.copy(
+                                    errorMessage = "Couldn't connect to the internet!",
+                                    isLoading = false
+                                )
                             }
                         }
                     }
