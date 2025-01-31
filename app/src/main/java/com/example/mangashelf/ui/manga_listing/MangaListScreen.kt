@@ -128,17 +128,11 @@ fun MangaListScreen(
                         lazyListState = lazyListState,
                         onTabClicked = { index, year ->
                             scope.launch(Dispatchers.Default) {
-//                                val totalItemsToScroll = uiState.groupedMangas
-//                                    .take(index + 1)
-//                                    .sumOf { it.mangas.size }
-
                                 val indexToScroll = uiState.groupedMangas
                                     .take(index + 1)
                                     .sumOf { it.mangas.size } - uiState.groupedMangas[index].mangas.size
                                 withContext(Dispatchers.Main) {
-//                                    Log.d("index_tagg", "$totalItemsToScroll")
-//                                    lazyListState.animateScrollToItem(indexToScroll)
-                                    lazyListState.scrollToItem(indexToScroll)
+                                    lazyListState.animateScrollToItem(indexToScroll)
                                 }
                             }
                         }
