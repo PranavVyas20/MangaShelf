@@ -48,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -92,6 +93,7 @@ fun MangaListScreen(
     removeToastMessage: () -> Unit
 ) {
     val lazyListState = rememberLazyListState()
+    var keepSticky by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     uiState.toastMessage?.let {
@@ -127,14 +129,17 @@ fun MangaListScreen(
                         mangasPublishedYears = uiState.mangasPublishedYears,
                         allMangas = uiState.allFetchedMangas,
                         groupedMangas = uiState.groupedMangas,
+                        keepSticky = keepSticky,
                         lazyListState = lazyListState,
                         onTabClicked = { index, year ->
+                            keepSticky = true
                             scope.launch(Dispatchers.Default) {
                                 val indexToScroll = uiState.groupedMangas
                                     .take(index + 1)
                                     .sumOf { it.mangas.size } - uiState.groupedMangas[index].mangas.size
                                 withContext(Dispatchers.Main) {
                                     lazyListState.animateScrollToItem(indexToScroll)
+                                    keepSticky = false
                                 }
                             }
                         }
@@ -240,6 +245,7 @@ fun MangaList(
 @Composable
 fun PublishedFiltersBar(
     mangasPublishedYears: List<Int>,
+    keepSticky: Boolean,
     allMangas: List<MangaDto>,
     groupedMangas: List<GroupedMangas>,
     lazyListState: LazyListState,
@@ -248,14 +254,18 @@ fun PublishedFiltersBar(
     var selectedFilterTabIndex by remember { mutableIntStateOf(0) }
     var currentYear by remember { mutableStateOf<Int?>(null) }
     val currentGroupedMangas by rememberUpdatedState(groupedMangas)
-    LaunchedEffect(lazyListState) {
+    val shouldKeepSticky by rememberUpdatedState(keepSticky)
+
+    LaunchedEffect(Unit) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }
             .collect { index ->
-                val newYear = allMangas.getOrNull(index)?.publishedYear
-                if (newYear != null && newYear != currentYear) {
-                    currentYear = newYear
-                    selectedFilterTabIndex =
-                        currentGroupedMangas.indexOfFirst { it.publishedYear == newYear }
+                if(shouldKeepSticky.not()) {
+                    val newYear = allMangas.getOrNull(index)?.publishedYear
+                    if (newYear != null && newYear != currentYear) {
+                        currentYear = newYear
+                        selectedFilterTabIndex =
+                            currentGroupedMangas.indexOfFirst { it.publishedYear == newYear }
+                    }
                 }
             }
     }
